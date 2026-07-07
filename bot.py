@@ -9,7 +9,9 @@ from aiogram.fsm.context import FSMContext
 from storage import add_reminder, get_reminders, delete_reminders,update_reminder, get_all_reminders,mark_as_sent
 from datetime import datetime
 from storage import init_db
-from config import TOKEN
+import os
+
+TOKEN = os.getenv("BOT_TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
