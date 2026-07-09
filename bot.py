@@ -9,12 +9,11 @@ from aiogram.fsm.context import FSMContext
 from storage import add_reminder, get_reminders, delete_reminders,update_reminder, get_all_reminders,mark_as_sent
 from datetime import datetime
 from storage import init_db
-import os
-
-TOKEN = os.getenv("BOT_TOKEN")
+from config import TOKEN
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+
 class ReminderState(StatesGroup):
    waiting_for_text = State()
    waiting_for_delete = State()

@@ -40,7 +40,7 @@ def add_reminder(reminder):
 def get_reminders(chat_id):
     connection = sqlite3.connect("reminders.db")
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM reminders WHERE chat_id = ?", (chat_id))
+    cursor.execute("SELECT * FROM reminders WHERE chat_id = ?", (chat_id,))
 
     rows = cursor.fetchall()
     connection.close()
