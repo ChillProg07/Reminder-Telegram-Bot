@@ -2,7 +2,7 @@ import asyncio
 
 from aiogram import Bot,Dispatcher,F
 from aiogram.types import Message,BotCommand, ReplyKeyboardMarkup, KeyboardButton
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
@@ -22,7 +22,9 @@ class ReminderState(StatesGroup):
 
    waiting_for_edit_index = State()
    waiting_for_edit_text = State()
-
+   waiting_for_edit_date = State()
+   waiting_for_edit_time = State()
+   waiting_for_edit_choice = State()
 
  #buttons for users
 menu = ReplyKeyboardMarkup(
@@ -232,13 +234,146 @@ async def edit_choose_index(message: Message, state: FSMContext):
     if chosen_index < 0 or chosen_index >= len(reminders):
         await message.answer("❌ Нагадування з таким номером не існує. Спробуйте ще раз.")
         return
+    
+    reminder = reminders[chosen_index]
+    await state.update_data(reminder_id=reminders["id"])
 
-    reminder_id = reminders[chosen_index]["id"]
-    await state.update_data(reminder_id=reminder_id)
-    await state.set_state(ReminderState.waiting_for_edit_text)
-    await message.answer("📝 Введіть новий текст для цього нагадування:")
+    keyboard = InlineKeyboardMarkup(
+       inline_keyboard=[
+            [ InlineKeyboardButton(
+                    text="📝 Текст",
+                    callback_data="edit_text"
+                ),
+                InlineKeyboardButton(
+                    text="📅 Дата",
+                    callback_data="edit_date"
+                )
+            ],
+            [ InlineKeyboardButton(
+                    text="⏰ Час",
+                    callback_data="edit_time"
+                ),
+                InlineKeyboardButton(
+                    text="✏️ Усе",
+                    callback_data="edit_all"
+                )
+            ],
+            [ InlineKeyboardButton(
+                    text="❌ Скасувати",
+                    callback_data="edit_cancel"
+                )
+            ]
+        ]
+    )
+
+    await message.answer(
+        f"📌 Обране нагадування:\n\n"
+        f"{reminder['text']}\n"
+        f"📅 {reminder['date']}\n"
+        f"⏰ {reminder['time']}\n\n"
+        f"Що потрібно змінити?",
+        reply_markup=keyboard
+    )
+
+    await state.set_state(ReminderState.waiting_for_edit_choice)
 
 
+@dp.callback_query(ReminderState.waiting_for_edit_choice, F.data=="edit_text")
+async def process_edit_text(
+    callback: CallbackQuery,
+    state: FSMContext
+):
+
+    await callback.message.edit_text(
+        "📝 Введіть новий текст для нагадування:"
+    )
+
+    await state.set_state(
+        ReminderState.waiting_for_edit_text
+    )
+
+    await callback.answer()
+
+@dp.callback_query(
+    ReminderState.waiting_for_edit_choice,
+    F.data == "edit_date"
+)
+async def process_edit_date(
+    callback: CallbackQuery,
+    state: FSMContext
+):
+
+    await callback.message.edit_text(
+        "📅 Введіть нову дату:"
+    )
+
+    await state.set_state(
+        ReminderState.waiting_for_edit_date
+    )
+
+    await callback.answer()
+
+@dp.callback_query(
+    ReminderState.waiting_for_edit_choice,
+    F.data == "edit_time"
+)
+async def process_edit_time(
+    callback: CallbackQuery,
+    state: FSMContext
+):
+
+    await callback.message.edit_text(
+        "⏰ Введіть новий час:"
+    )
+
+    await state.set_state(
+        ReminderState.waiting_for_edit_time
+    )
+
+    await callback.answer()
+
+
+@dp.callback_query(
+    ReminderState.waiting_for_edit_choice,
+    F.data == "edit_all"
+)
+async def process_edit_all(
+    callback: CallbackQuery,
+    state: FSMContext
+):
+
+    await state.update_data(
+        edit_all=True
+    )
+
+    await callback.message.edit_text(
+        "📝 Введіть новий текст:"
+    )
+
+    await state.set_state(
+        ReminderState.waiting_for_edit_text
+    )
+
+    await callback.answer()
+
+@dp.callback_query(
+    ReminderState.waiting_for_edit_choice,
+    F.data == "edit_cancel"
+)
+async def process_edit_cancel(
+    callback: CallbackQuery,
+    state: FSMContext
+):
+
+    await callback.message.edit_text(
+        "❌ Редагування скасовано."
+    )
+
+    await state.clear()
+
+    await callback.answer()
+
+    
 # edit only text
 @dp.message(ReminderState.waiting_for_edit_text)
 async def edit_save_text(message:Message, state:FSMContext):
