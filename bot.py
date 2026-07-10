@@ -236,7 +236,8 @@ async def edit_choose_index(message: Message, state: FSMContext):
         return
     
     reminder = reminders[chosen_index]
-    await state.update_data(reminder_id=reminders["id"])
+    await state.update_data(reminder_id=reminder["id"])
+    
 
     keyboard = InlineKeyboardMarkup(
        inline_keyboard=[
@@ -373,7 +374,7 @@ async def process_edit_cancel(
 
     await callback.answer()
 
-    
+
 # edit only text
 @dp.message(ReminderState.waiting_for_edit_text)
 async def edit_save_text(message:Message, state:FSMContext):
