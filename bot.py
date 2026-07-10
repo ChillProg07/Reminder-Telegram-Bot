@@ -6,7 +6,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from storage import add_reminder, get_reminders, delete_reminders,update_reminder, get_all_reminders,mark_as_sent
+from storage import add_reminder, get_reminders, delete_reminders,update_reminder, update_reminder_date, update_reminder_time, get_all_reminders,mark_as_sent
 from datetime import datetime
 from storage import init_db
 from config import TOKEN
@@ -237,7 +237,7 @@ async def edit_choose_index(message: Message, state: FSMContext):
     
     reminder = reminders[chosen_index]
     await state.update_data(reminder_id=reminder["id"])
-    
+
 
     keyboard = InlineKeyboardMarkup(
        inline_keyboard=[
@@ -391,6 +391,46 @@ async def edit_save_text(message:Message, state:FSMContext):
    await message.answer("✅ Нагадування оновлено!")
    await state.clear()
    
+
+@dp.message(ReminderState.waiting_for_edit_date)
+async def edit_save_date(message:Message, state:FSMContext):
+    data = await state.get_data()
+    reminder_id = data.get("reminder_id")
+
+    if reminder_id is None:
+        await message.answer("❌ Помилка. Спробуйте ще раз через /edit")
+        await state.clear()
+        return
+    
+    new_date = message.text
+    update_reminder_date(reminder_id, new_date)
+
+    await message.answer("✅ Дату нагадування оновлено!")
+    await state.clear()
+
+@dp.message(ReminderState.waiting_for_edit_time)
+async def edit_save_time(message: Message, state: FSMContext):
+
+    data = await state.get_data()
+    reminder_id = data.get("reminder_id")
+
+    if reminder_id is None:
+        await message.answer("❌ Помилка. Спробуйте ще раз.")
+        await state.clear()
+        return
+
+    new_time = message.text
+
+    update_reminder_time(
+        reminder_id,
+        new_time
+    )
+
+    await message.answer(
+        "✅ Час нагадування оновлено!"
+    )
+
+    await state.clear()
 
 #налаштування меню бота
 async def set_commands():

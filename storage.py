@@ -81,6 +81,40 @@ def update_reminder(reminder_id: int, new_text:str):
     connection.commit()
     connection.close()
 
+
+def update_reminder_date(reminder_id: int, new_date: str):
+    connection = sqlite3.connect("reminders.db")
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE reminders
+        SET date = ?
+        WHERE id = ?
+        """,
+        (new_date, reminder_id)
+    )
+
+    connection.commit()
+    connection.close()
+
+
+def update_reminder_time(reminder_id: int, new_time: str):
+    connection = sqlite3.connect("reminders.db")
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE reminders
+        SET time = ?
+        WHERE id = ?
+        """,
+        (new_time, reminder_id)
+    )
+
+    connection.commit()
+    connection.close()
+
+
+
 def get_all_reminders():
     connection = sqlite3.connect("reminders.db")
     cursor = connection.cursor()
