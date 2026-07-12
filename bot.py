@@ -381,7 +381,8 @@ async def edit_save_text(message:Message, state:FSMContext):
    newText = message.text
    data = await state.get_data()
    reminder_id = data.get("reminder_id")
-
+   print("EDIT DATA:", data)
+   
    if reminder_id is None:
       await message.answer("❌ Щось пішло не так. Спробуйте заново через /edit")
       await state.clear()
