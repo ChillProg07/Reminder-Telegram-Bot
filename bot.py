@@ -420,7 +420,7 @@ async def edit_save_date(message:Message, state:FSMContext):
         return
     
     new_date = message.text
-    
+
     if data.get("edit_all"):
 
         await state.update_data(
@@ -451,6 +451,9 @@ async def edit_save_time(message: Message, state: FSMContext):
         await message.answer("❌ Помилка. Спробуйте ще раз.")
         await state.clear()
         return
+    
+    new_time = message.text
+    
     if data.get("edit_all"):
 
         update_reminder(
@@ -467,7 +470,6 @@ async def edit_save_time(message: Message, state: FSMContext):
             reminder_id,
             new_time
         )
-    new_time = message.text
 
     update_reminder_time(
         reminder_id,
